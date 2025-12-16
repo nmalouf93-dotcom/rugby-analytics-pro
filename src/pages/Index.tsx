@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Activity, 
   Target, 
@@ -7,56 +7,16 @@ import {
   TrendingUp, 
   Shield,
   Zap,
-  BarChart3,
-  Play
+  LogIn,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import StatsCard from "@/components/StatsCard";
-import TackleQualityChart from "@/components/TackleQualityChart";
-import RuckDurationChart from "@/components/RuckDurationChart";
-import EventsTable from "@/components/EventsTable";
-import UploadZone from "@/components/UploadZone";
 import FeatureCard from "@/components/FeatureCard";
-
-// Sample data for demonstration
-const sampleTackleData = {
-  dominant: 42.5,
-  neutral: 38.2,
-  lost: 19.3,
-};
-
-const sampleRuckData = {
-  under3s: 45.2,
-  threeToFive: 32.1,
-  fiveToEight: 15.4,
-  over8s: 7.3,
-};
-
-const sampleTackles = [
-  { id: 1, startTime: "12:34", duration: "1.2s", bodies: 2, displacement: "0.4m", quality: "dominant" as const, confidence: 0.85 },
-  { id: 2, startTime: "14:22", duration: "0.9s", bodies: 3, displacement: "1.1m", quality: "neutral" as const, confidence: 0.72 },
-  { id: 3, startTime: "18:45", duration: "1.5s", bodies: 4, displacement: "2.3m", quality: "lost" as const, confidence: 0.68 },
-  { id: 4, startTime: "23:12", duration: "0.8s", bodies: 2, displacement: "0.2m", quality: "dominant" as const, confidence: 0.91 },
-  { id: 5, startTime: "27:38", duration: "1.1s", bodies: 2, displacement: "0.8m", quality: "neutral" as const, confidence: 0.79 },
-];
-
-const sampleRucks = [
-  { id: 1, startTime: "12:36", duration: "2.4s", bodies: 4, confidence: 0.82 },
-  { id: 2, startTime: "14:25", duration: "3.8s", bodies: 5, confidence: 0.75 },
-  { id: 3, startTime: "18:48", duration: "5.2s", bodies: 6, confidence: 0.71 },
-  { id: 4, startTime: "23:15", duration: "2.1s", bodies: 3, confidence: 0.88 },
-  { id: 5, startTime: "27:41", duration: "4.5s", bodies: 5, confidence: 0.77 },
-];
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const [showDemo, setShowDemo] = useState(false);
-  const [, setSelectedFile] = useState<File | null>(null);
-
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file);
-    setShowDemo(true);
-  };
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,6 +24,27 @@ const Index = () => {
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[var(--gradient-hero)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(160_70%_45%_/_0.1)_0%,_transparent_50%)]" />
+        
+        {/* Nav */}
+        <nav className="relative container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity className="w-6 h-6 text-primary" />
+            <span className="font-bold text-lg">Rugby Analytics</span>
+          </div>
+          {!loading && (
+            user ? (
+              <Button onClick={() => navigate("/dashboard")} className="gap-2">
+                Dashboard
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button onClick={() => navigate("/auth")} variant="outline" className="gap-2">
+                <LogIn className="w-4 h-4" />
+                Sign In
+              </Button>
+            )
+          )}
+        </nav>
         
         <div className="relative container mx-auto px-4 py-20 lg:py-32">
           <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -87,19 +68,10 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="gap-2 px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={() => document.getElementById('upload-section')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => navigate(user ? "/dashboard" : "/auth")}
               >
-                <Play className="w-4 h-4" />
-                Analyze Video
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="gap-2 px-8 border-border/50 hover:bg-secondary/50"
-                onClick={() => setShowDemo(true)}
-              >
-                <BarChart3 className="w-4 h-4" />
-                View Demo Results
+                {user ? "Go to Dashboard" : "Get Started"}
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -149,132 +121,64 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Upload Section */}
-      <section id="upload-section" className="container mx-auto px-4 py-20">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4">Upload Match Footage</h2>
-            <p className="text-muted-foreground">
-              Supports broadcast angle (side-on, elevated), 720p–1080p, 25–60fps
+      {/* How It Works */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">How It Works</h2>
+          <p className="text-muted-foreground max-w-xl mx-auto">
+            Simple 3-step process from video to insights
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              1
+            </div>
+            <h3 className="font-semibold mb-2">Upload Video</h3>
+            <p className="text-sm text-muted-foreground">
+              Upload your match footage through the dashboard
             </p>
           </div>
-          
-          <UploadZone onFileSelect={handleFileSelect} />
-          
-          <div className="mt-6 p-4 rounded-lg bg-secondary/30 border border-border/30">
-            <p className="text-sm text-muted-foreground text-center">
-              <strong className="text-foreground">Note:</strong> Video processing requires the Python backend. 
-              This UI demonstrates the results visualization. Upload triggers demo data display.
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              2
+            </div>
+            <h3 className="font-semibold mb-2">Process with Python</h3>
+            <p className="text-sm text-muted-foreground">
+              Your Python worker analyzes the video using YOLOv8 + ByteTrack
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+              3
+            </div>
+            <h3 className="font-semibold mb-2">View Results</h3>
+            <p className="text-sm text-muted-foreground">
+              Access charts, stats, and event tables in real-time
             </p>
           </div>
         </div>
       </section>
 
-      {/* Results Section */}
-      {showDemo && (
-        <section className="container mx-auto px-4 py-20 animate-fade-in">
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-2">Analysis Results</h2>
-            <p className="text-muted-foreground">
-              Sample analysis from a 40-minute match segment
-            </p>
-          </div>
-
-          {/* Summary Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatsCard
-              title="Total Tackles"
-              value="47"
-              subtitle="Detected events"
-              icon={<Target className="w-6 h-6" />}
-            />
-            <StatsCard
-              title="Dominant Rate"
-              value="42.5%"
-              subtitle="Quality tackles"
-              variant="dominant"
-              icon={<Shield className="w-6 h-6" />}
-            />
-            <StatsCard
-              title="Total Rucks"
-              value="52"
-              subtitle="Breakdown events"
-              icon={<Users className="w-6 h-6" />}
-            />
-            <StatsCard
-              title="Median Ruck"
-              value="2.8s"
-              subtitle="Ball recycled"
-              icon={<Timer className="w-6 h-6" />}
-            />
-          </div>
-
-          {/* Charts */}
-          <div className="grid lg:grid-cols-2 gap-6 mb-8">
-            <TackleQualityChart data={sampleTackleData} />
-            <RuckDurationChart data={sampleRuckData} />
-          </div>
-
-          {/* Detailed Stats */}
-          <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            <StatsCard
-              title="Avg Displacement"
-              value="0.9m"
-              subtitle="Post-contact"
-            />
-            <StatsCard
-              title="P75 Displacement"
-              value="1.4m"
-            />
-            <StatsCard
-              title="Avg Bodies/Tackle"
-              value="2.4"
-            />
-            <StatsCard
-              title="Rucks <3s"
-              value="45.2%"
-              variant="dominant"
-            />
-            <StatsCard
-              title="Rucks 5-8s"
-              value="15.4%"
-              variant="neutral"
-            />
-            <StatsCard
-              title="Overcommit Rate"
-              value="18.3%"
-              subtitle="≥4 bodies"
-              variant="lost"
-            />
-          </div>
-
-          {/* Events Tables */}
-          <Tabs defaultValue="tackles" className="space-y-6">
-            <TabsList className="bg-secondary/50 p-1">
-              <TabsTrigger 
-                value="tackles" 
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                Tackle Events
-              </TabsTrigger>
-              <TabsTrigger 
-                value="rucks"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                Ruck Events
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="tackles">
-              <EventsTable type="tackles" tackles={sampleTackles} />
-            </TabsContent>
-
-            <TabsContent value="rucks">
-              <EventsTable type="rucks" rucks={sampleRucks} />
-            </TabsContent>
-          </Tabs>
-        </section>
-      )}
+      {/* CTA */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="glass rounded-2xl p-12 text-center max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">Ready to Analyze?</h2>
+          <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+            Create an account and start uploading match footage. Your Python worker 
+            handles the heavy lifting.
+          </p>
+          <Button 
+            size="lg" 
+            className="gap-2 px-8"
+            onClick={() => navigate(user ? "/dashboard" : "/auth")}
+          >
+            {user ? "Open Dashboard" : "Create Account"}
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="border-t border-border/30">
