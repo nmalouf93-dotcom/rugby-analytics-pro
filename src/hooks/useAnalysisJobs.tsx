@@ -137,6 +137,43 @@ export const useAnalysisJobs = () => {
     return data as AnalysisJob;
   };
 
+  const createYouTubeJob = async (youtubeUrl: string): Promise<AnalysisJob | null> => {
+    if (!user) return null;
+
+    // Extract video ID for display name
+    const videoIdMatch = youtubeUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s]+)/);
+    const videoId = videoIdMatch ? videoIdMatch[1] : "youtube-video";
+    const displayName = `YouTube: ${videoId}`;
+
+    const { data, error } = await supabase
+      .from("analysis_jobs")
+      .insert({
+        user_id: user.id,
+        video_path: youtubeUrl,
+        video_filename: displayName,
+        status: "queued",
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Create YouTube job error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create analysis job",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    toast({
+      title: "Job Created",
+      description: "YouTube video has been queued for analysis",
+    });
+
+    return data as AnalysisJob;
+  };
+
   const getResultsUrl = async (path: string): Promise<string | null> => {
     const { data, error } = await supabase.storage
       .from("results")
@@ -155,6 +192,7 @@ export const useAnalysisJobs = () => {
     loading,
     uploadVideo,
     createJob,
+    createYouTubeJob,
     getResultsUrl,
     refetch: fetchJobs,
   };

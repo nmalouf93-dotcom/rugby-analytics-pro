@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { jobs, loading: jobsLoading, uploadVideo, createJob } = useAnalysisJobs();
+  const { jobs, loading: jobsLoading, uploadVideo, createJob, createYouTubeJob } = useAnalysisJobs();
   const [selectedJob, setSelectedJob] = useState<AnalysisJob | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -34,6 +34,18 @@ const Dashboard = () => {
         setSelectedJob(job);
         setShowUpload(false);
       }
+    }
+    
+    setIsUploading(false);
+  };
+
+  const handleYouTubeSubmit = async (url: string) => {
+    setIsUploading(true);
+    
+    const job = await createYouTubeJob(url);
+    if (job) {
+      setSelectedJob(job);
+      setShowUpload(false);
     }
     
     setIsUploading(false);
@@ -126,7 +138,7 @@ const Dashboard = () => {
                   </p>
                 </div>
 
-                <UploadZone onFileSelect={handleFileSelect} />
+                <UploadZone onFileSelect={handleFileSelect} onYouTubeSubmit={handleYouTubeSubmit} />
 
                 {isUploading && (
                   <div className="glass rounded-lg p-6 text-center">
